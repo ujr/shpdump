@@ -1,0 +1,263 @@
+<html>
+<head>
+  <title>shpdump - dump shapefiles</title>
+  <style type="text/css">
+    body { margin:2pc; font-family: sans-serif; }
+  </style>
+</head>
+<body>
+
+<h1>shpdump - dump shapefiles</h1>
+
+<p>Convert ESRI shapefiles (extension .shp) to a plain text
+ representation that is easy to read for both humans and machines.
+ Optionally, convert to Arc GENERATE format.</p>
+
+<h3>Usage</h3>
+<pre><b>shpdump</b> [-V] [-p <i>prec</i>] [-ghvx] [<i>file</i>]</pre>
+<p>Read from standard input or the <i>file</i> given on
+ the command line a shapefile and dump it to standard output
+ in a simple <a href="#format">plain text format</a>.
+ If <i>file</i> does not include an extension, ".shp" will be
+ appended. Options:</p>
+
+<dl compact>
+<dt>-V</dt>
+<dd>identify program and version to stdout and exit zero</dd>
+<dt>-g</dt>
+<dd>dump in <a href="#generate">Arc GENERATE format</a></dd>
+<dt>-h</dt>
+<dd>dump only the shapefile header</dd>
+<dt>-p <i>prec</i></dt>
+<dd>use given precision (digits after decimal point; default is 2)</dd>
+<dt>-v</dt>
+<dd>verbose: dump more information about the shapefile</dd>
+<dt>-x</dt>
+<dd>report inconsistencies in the shapefile to stderr</dd>
+</dl>
+
+<p>The tool exits with status <b>0</b> if everything went fine,
+ <b>1</b> if there's an inconsistency in the shapefile and the
+ <b>-x</b> option was specified, <b>111</b> if there was a
+ temporary error (<i>e.g.</i>, troubles reading or writing),
+ and <b>127</b> if there is a permanent error (like invalid
+ command line arguments).</p>
+
+<p>Any error messages and warnings go to standard error.</p>
+
+<h3>Shapefiles</h3>
+<p>Shapefiles are a file format for storing non-topological spatial
+data, developed by Environmental Systems Research Institute, Inc.
+(ESRI), and are widely used, probably because they are fully
+documented in a white paper by ESRI, available online at
+<a href="http://www.esri.com/">www.esri.com</a>.</p>
+
+<a name="format"></a>
+<h3>Output Format</h3>
+
+<p>The shapefile is dumped by shpdump as a series of keywords with one or
+more arguments. Keywords always start in the first row of a new line.</p>
+
+<p>Some keywords and associated argument(s) are only dumped if verbose
+output (-v) is requested: filename, magic, version, xrange, yrange, bbox;
+if no filename is specified on the command line it is not dumped.</p>
+
+<pre>endian {big, little}               # only if very verbose
+filename &lt;filename&gt;                # only if very verbose &amp; not stdin
+magic 9994
+version 1000
+type {null, point, line, poly, unknown}
+xrange &lt;xmin&gt; &lt;xmax&gt;
+yrange &lt;ymin&gt; &lt;ymax&gt;
+zrange &lt;zmin&gt; &lt;zmax&gt;
+mrange &lt;mmin&gt; &lt;mmax&gt;
+shape &lt;id&gt; type &lt;type&gt; bytes &lt;n&gt;   # unsupported shape type
+null &lt;id&gt;
+point &lt;id&gt; &lt;xcoord&gt; &lt;ycoord&gt;
+line &lt;id&gt; parts &lt;m&gt; points &lt;n&gt; &lt;x1&gt; &lt;y1&gt; ... &lt;xn&gt; &lt;yn&gt;
+line &lt;id&gt; parts &lt;m&gt; points &lt;n&gt; &lt;x1&gt; &lt;y1&gt; ... part ... &lt;xn&gt; &lt;yn&gt;
+polygon &lt;id&gt; parts &lt;m&gt; points &lt;n&gt; &lt;x1&gt; &lt;y1&gt; ... &lt;xn=x1&gt; &lt;yn=y1&gt;
+polygon &lt;id&gt; parts &lt;m&gt; points &lt;n&gt; &lt;x1&gt; &lt;y1&gt; ... part ... &lt;xn&gt; &lt;yn&gt;
+bbox &lt;xmin&gt; &lt;ymin&gt; &lt;xmax&gt; &lt;ymax&gt;
+</pre>
+
+<a name="generate"></a>
+<h3>Arc GENERATE Format</h3>
+
+<p>Arc GENERATE is a very simple plain text format for spatial
+data: points, lines, polygons, and text annotations. It is
+used by the GENERATE tool in ESRI's Arc/INFO software.</p>
+
+<h4>Points</h4>
+
+<p>GENERATE files for points represent each point with its id,
+x and y coordinate on one line having the form:</p>
+
+<pre>&lt;id&gt;,&lt;xcoord&gt;,&lt;ycoord&gt;</pre>
+
+<p>The id is any numeric value; it need not be unique within
+the file. The last line in the file consists of the string
+"END". Example:</p>
+
+<pre>
+101,3.45,2.28
+102,3.90,1.85
+103,4.01,1.53
+END
+</pre>
+
+<h4>Lines</h4>
+
+<p>GENERATE files for lines represent each spatial line
+as a series of text lines having the form:</p>
+
+<pre>
+&lt;id&gt;
+&lt;x0&gt;,&lt;y0&gt;
+&lt;x1&gt;,&lt;y1&gt;
+...
+&lt;xn&gt;,&lt;yn&gt;
+END
+</pre>
+
+<p>The id is any numeric value; it need not be unique within
+the file. Every spatial line is terminated with a text line
+consisting of just the string "END". The entire file is also
+terminated with a line consisting of just the string "END".
+Example:</p>
+
+<pre>
+201
+3.54,2.28
+3.90,1.85
+4.01,1.53
+END
+202
+5.22,7.08
+4.87,7.59
+END
+END
+</pre>
+
+<h4>Polygons</h4>
+
+<p>GENERATE files for polygon features are the same as GENERATE
+files for lines, except that the last point of each line must
+equal the first point of the line.</p>
+
+<h4>Notes</h4>
+
+<p>There are other GENERATE file types.<br>
+They may also represent 3D features by adding a z coordinate.<br>
+Can GENERATE files represent lines with <b>branches?</b><br>
+Can GENERATE files represent polygons with <b>holes?</b></p>
+
+<h3>Examples</h3>
+
+<p>Dump <i>shapefile.shp</i> to stdout:</p>
+<pre>$ <b>shpdump <i>shapefile.shp</i></b>
+type polygon
+polygon 1 parts 1 points 5
+ 239363.77 2778312.07
+ 239363.77 3728671.51
+ 2108923.33 3728671.51
+ 2108923.33 2778312.07
+ 239363.77 2778312.07
+polygon 2 parts 1 points 6
+ 2295879.28 -368779.84
+ 3090442.09 -898488.38
+ 2856747.15 -1770949.51
+ 2268835.28 -1862642.18
+ 837722.28 -501339.57
+ 2295879.28 -368779.84
+$</pre>
+<p>The first line tells that <i>shapefile.shp</i> is of type
+ polygon. The first polygon has five points, whose coordinates
+ are printed on the subsequent lines. Note that for polygons
+ the first vertex and the last have the same coordinates.
+ This is by requirement of the shapefile specification.</p>
+
+<p>Dump the full header of <i>shapefile.shp</i> to stdout:</p>
+<pre>$ <b>shpdump -hv <i>shapefile.shp</i></b>
+magic 9994
+version 1000
+length 126300
+type polygon
+xrange 241697.28 744723.75
+yrange 98724.95 882077.44
+$</pre>
+<p>Here we see the header fields. Magic is always 9994 and version
+ is always 1000, by requirement of the shapefile specification.
+ The fields xrange and yrange define the global bounding box:
+ All vertices of all the shapes in this shapefile have x and y
+ coordinates in the ranges shown (unless the shapefile is bad).</p>
+
+<p>Dump all shapes in <i>shapefile.shp</i> and report any
+ inconsistencies found, like bounding boxes that are not
+ minimal enclosing rectangles, or shapes of types other
+ than null and the type specified in the header:</p>
+<pre>$ <b>shpdump -x <i>shapefile.shp</i></b>
+type point
+point 1 519797.71 3276861.29
+point 2 2498414.90 3448237.58
+point 3 3822686.25 2030488.25
+! invalid global bounding box (xrange/yrange)
+$</pre>
+
+<p>Dump <i>shapefile.shp</i> in Arc GENERATE format:</p>
+<pre>$ <b>shpdump -g <i>shapefile.shp</i></b>
+1
+239363.77,2778312.07
+239363.77,3728671.51
+2108923.33,3728671.51
+2108923.33,2778312.07
+239363.77,2778312.07
+END
+2
+5115960.55,3183383.31
+5115846.62,3170329.15
+5115504.89,3157278.97
+5114935.46,3144236.74
+...
+5115846.62,3196437.47
+5115960.55,3183383.31
+END
+END
+$</pre>
+<p>In GENERATE format, lines and polygons are represented by their
+ id, followed by the coordinates of the vertices, each on a line,
+ followed by END on a line by itself. After the last shape, the
+ file is terminated by another END.  Note that from this output
+ we cannot tell for sure if <i>shapefile.shp</i> is of type line
+ or of type polygon. But the coincidence of the first and last
+ vertex in each shape is a strong indication that it probably is
+ of type polygon. Dump without the -g option if you want to know
+ for sure.</p>
+
+<h3>Installation</h3>
+<ol>
+<li>download the source tarball <i>shpdump.tgz</i></li>
+<li>change to a directory of your choosing and unpack:
+    <b>tar xzf shpdump.tgz</b></li>
+<li>change into the directory that resulted from unpacking
+    the tarball, then type <b>make</b></li>
+<li>copy the resulting binary &quot;shpdump&quot; to some
+    location in your search path.</li>
+</ol>
+
+<h3>Disclaimer</h3>
+<p>This program is provided "as is", there is no warranty,
+ you use it at your exclusive risk.
+ It is provided under the terms of the
+ <a href="http://www.gnu.org/copyleft/gpl.html">GNU General
+ Public License</a>, which accompanies the source code.</p>
+
+<h3>Note</h3>
+<p>To convert from a text file in GENERATE format to a shapefile,
+ you may want to use
+ <a href="http://www.intevation.de/~jan/gen2shp">gen2shp</a>.</p>
+
+<div align="right">latest <i>ujr/2005-08-02</i></div>
+<div align="right">started <i>ujr/2004-04-14</i></div>
+</body>
+</html>

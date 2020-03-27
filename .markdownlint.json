@@ -1,0 +1,4 @@
+{
+    "no-multiple-blanks": false,
+    "header-style": { "style": "setext_with_atx" }
+}

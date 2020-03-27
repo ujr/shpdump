@@ -1,0 +1,5 @@
+Urs-Jakob Ruetschi <uruetsch@geo.unizh.ch>
+
+Thanks to David Benbennick <dbenbenn@gmail.com>
+ for pointing out (and fixing) a bug in relation to
+ multipart Polygons (and multipart Polylines).

@@ -1,0 +1,95 @@
+Date: Fri, 29 Jul 2005 22:13:39 -0400
+From: David Benbennick <dbenbenn@gmail.com>
+To: Urs-Jakob RŸetschi <uruetsch@geo.unizh.ch>
+Subject: Shpdump patch
+
+Mr. RŸetschi,
+
+Thank you for your Shpdump program,
+http://www.geo.unizh.ch/~uruetsch/software/shpdump.html!  Recently
+I've been using it to make maps of Colorado.
+
+I found a bug.  In multipart polygons, each "part" delimiter is output
+one line too late.  I've attached a patch to fix this problem. 
+Possibly the same bug exists for multipart shapes of other types,
+though I haven't tested that case.
+
+(The patch also allows precisions higher than 9.  I've been using 15.)
+
+Attachment: patch, application/octet-stream
+
+++++++++
+
+Date: Tue, August 26, 2008 3:40 pm
+From: "Guido Schroeder" <u232020@googlemail.com>
+To: uruetsch@geo.unizh.ch
+Subject: Bug in shpdump
+
+Sehr geehrter Herr R"uetschi,
+
+vielen Dank, dass Sie im Web den Code
+fuer shpdump zur Verfuegung stellen,
+das war mir sehr nuetzlich.
+Hier aber ein kleiner Hinweis - der Code gibt nicht alle Shapefiles 
+aus, da an einer Stelle die Dateiposition tally nicht richtig 
+vorwaerts gezaehlt wird. (Tally zaehlt ja 16-Byte words).
+
+In shpdump.c in
+
+int dumpshape(void)
+
+muss es heissen :
+
+  Integer size = reclen + sizeof(Integer)/2; /* total size in 16-bit words */
+
+nicht
+
+  Integer size = reclen + sizeof(Integer); /* total size in 16-bit words */
+
+, da ja 16-Bit words gezaehlt werden, sizeof aber die Laenge in Byte
+angibt.
+
+Ich habe alte und neue Version angeheaengt, sie koennen ja mal ein 
+diff machen.
+
+Mit freundlichen Gruessen,
+
+Guido Schroeder.
+
+Attachments: shpdump.c and shpdump_new.c (each 18KB)
+
++++++
+
+From: uruetsch@geo.uzh.ch
+Date: 2008-08-28 09:17
+Subject: Re: But in shpdump
+To: "Guido Schroeder" <u232020@googlemail.com>
+
+Guten Tag Herr Schroeder
+
+Vielen Dank für Ihren Hinweis zu shpdump.
+Ich hab's kurz mir angeschaut und glaube, dass es doch korrekt
+ist - aber unleserlich. Mit der Addition von sizeof(Integer)
+addiere ich die Gr"osse von recnum UND reclen, also das, was ESRI den
+"Record Header" nennt, und im Wert von reclen nicht enthalten ist.
+
+Der folgende Code w"urde das besser kommunizieren:
+
+int dumpshape(void)
+{
+  Integer recnum = getintbig();  // record number
+  Integer reclen = getintbig();  // record length in 16-bit words
+
+  int size; // header and data, in 16-bit words
+  size = reclen + sizeof(recnum)/2 + sizeof(reclen)/2;
+
+  tally += size;
+etc...
+
+Ich m"ochte aber nicht ausschliessen, dass irgendwo ein Fehler steckt,
+der die komplette Ausgabe von korrekten Shapefiles verhindert. Wenn
+Sie mir ein solches Shapefile senden, kann ich bei Gelegenheit mal
+reinschauen.
+
+Freundliche Gr"usse,
+Urs-Jakob R"uetschi
